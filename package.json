@@ -1,0 +1,26 @@
+{
+  "name": "sistemarestaurante-reservademesas",
+  "version": "1.0.0",
+  "description": "trabalho professor lucas - PTAS + PTAC",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bragaxs/sistemarestaurante-reservademesas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bragaxs/sistemarestaurante-reservademesas/issues"
+  },
+  "homepage": "https://github.com/bragaxs/sistemarestaurante-reservademesas#readme",
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "express": "^5.1.0",
+    "prisma": "^6.16.2"
+  }
+}
