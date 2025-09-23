@@ -8,7 +8,7 @@ const client = new PrismaClient()
 
 class authController{
      static async cadastrar(req,res) {
-        const {nome, email, senha} = req.body
+        const {nome, email, senha, tipo} = req.body
 
         const salt = bcryptjs.genSaltSync(8)
         const hashSenha = bcryptjs.hashSync(senha, salt)
@@ -18,6 +18,7 @@ class authController{
           nome, 
           email,
           senha: hashSenha,
+          tipo
         },})
 
         res.json({
