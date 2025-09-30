@@ -12,6 +12,7 @@ model Usuario {
   nome      String
   email     String   @unique
   password  String
+  IsAdmin  Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

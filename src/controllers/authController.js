@@ -4,14 +4,12 @@ const { PrismaClient } = require("@prisma/client");
 const client = new PrismaClient();
 
 class AuthController {
+  // Cadastro
   static async cadastrar(req, res) {
-    const { nome, email, password } = req.body;
+    const { nome, email, password, IsAdmin } = req.body;
 
     if (!nome || !email || !password) {
-      return res.status(400).json({
-        mensagem: "Nome, email e senha são obrigatórios",
-        erro: true
-      });
+      return res.status(400).json({ msg: "Nome, email e senha são obrigatórios" });
     }
 
     const salt = bcryptjs.genSaltSync(8);
@@ -22,74 +20,68 @@ class AuthController {
         data: {
           nome,
           email,
-          password: hashPassword,
+          password: hashPassword,           
+          IsAdmin: IsAdmin || false,        
         },
       });
 
       const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
       res.status(201).json({
-        mensagem: "Usuário cadastrado com sucesso",
-        erro: false,
-        token
+        msg: "Usuário cadastrado com sucesso",
+        token,
       });
     } catch (e) {
       console.error(e);
-      res.status(500).json({
-        mensagem: "Erro ao cadastrar usuário, tente novamente trocando o nome ou email",
-        erro: true
-      });
+      res.status(500).json({ msg: "Erro ao cadastrar usuário!" });
     }
   }
 
+  // Login
   static async login(req, res) {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        mensagem: "Email e senha são obrigatórios",
-        erro: true
-      });
-    }
-
     try {
-      const usuario = await client.usuario.findUnique({
-        where: { email },
-      });
+      const usuario = await client.usuario.findUnique({ where: { email } });
 
-      if (!usuario) {
-        return res.status(404).json({
-          mensagem: "Usuário não encontrado",
-          erro: true
-        });
-      }
+      if (!usuario) return res.status(404).json({ msg: "Usuário não encontrado!" });
 
-      const passwordCorrect = bcryptjs.compareSync(password, usuario.password);
-      if (!passwordCorrect) {
-        return res.status(401).json({
-          mensagem: "Senha incorreta",
-          erro: true
-        });
-      }
+      const senhaCorreta = bcryptjs.compareSync(password, usuario.password);
+      if (!senhaCorreta) return res.status(401).json({ msg: "Senha incorreta!" });
 
       const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-      res.json({
-        mensagem: "Login realizado com sucesso",
-        erro: false,
-        token
-      });
+      res.json({ msg: "Login realizado com sucesso", token });
     } catch (e) {
       console.error(e);
-      res.status(500).json({
-        mensagem: "Erro ao realizar login",
-        erro: true
-      });
+      res.status(500).json({ msg: "Erro ao realizar login!" });
     }
+  }
+
+  // Middleware autenticação
+ static async verificaAutenticacao(req, res, next) {
+    const { token } = req.body; 
+    if (!token)
+        return res.status(401).json({ msg: "Token não encontrado no body" });
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
+        if (err) return res.status(403).json({ msg: "Token inválido!" });
+
+        req.usuarioId = payload.id;
+        next();
+    });
+}
+
+  // Middleware admin
+  static async verificaIsAdmin(req, res, next) {
+    if (!req.usuarioId) return res.status(401).json({ msg: "Você não está autenticado" });
+
+    const usuario = await client.usuario.findUnique({ where: { id: req.usuarioId } });
+
+    if (!usuario.IsAdmin) return res.status(403).json({ msg: "Acesso negado, você não é um administrador" });
+
+    next();
   }
 }
 
 module.exports = AuthController;
-
-
-//necessrio veri w
